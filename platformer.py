@@ -14,7 +14,7 @@ yv = 0
 
 # Physics Constants
 G = 9.8
-F = 0.7
+F = 0.9
 V = 10
 JUMP = 7
 
@@ -57,32 +57,31 @@ while running:
     if keys[pygame.K_a]: xv -= V * dt
     if keys[pygame.K_d]: xv += V * dt
     x += xv * dt
-    xv *= F ** dt
+    xv *= F ** (dt * 60)
 
     # Collisions
     left_x = round(x - 0.5)
     right_x = round(x + 0.5)
-    left_x_clearance = round(x - 0.5)
-    right_x_clearance = round(x + 0.5)
-    top_y = round(y + 0.95)
-    mid_y = round(y - 0.1)
-    head_y = round(y - 1)
+    left_x_clearance = round(x - 0.49)
+    right_x_clearance = round(x + 0.49)
+    
     bottom_y = round(y + 0.5)
+    middle_y = round(y)
 
     # Floor Collisions
     if (grid[bottom_y][left_x_clearance] != 0 or grid[bottom_y][right_x_clearance] != 0) and yv > 0:
         if try_to_jump: yv = -JUMP
         else: yv = 0
         y = bottom_y - 1
-    """
-    if (grid[mid_y][left_x] != 0 or grid[top_y][left_x] != 0) and xv < 0:
+    
+    if (grid[middle_y][left_x] != 0) and xv < 0:
         x = left_x + 1
         xv = 0
 
-    if (grid[mid_y][right_x] != 0 or grid[top_y][right_x] != 0) and xv > 0:
+    if (grid[middle_y][right_x] != 0) and xv > 0:
         x = right_x - 1
         xv = 0
-
+    """
     # Ceiling Collisions
     if (grid[head_y][left_x_clearance] != 0 or grid[head_y][right_x_clearance]) and yv < 0:
         yv = 0
