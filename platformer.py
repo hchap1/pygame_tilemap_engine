@@ -38,9 +38,15 @@ while running:
     dt = t - last_time
     last_time = t
 
+    try_to_jump = False
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                try_to_jump = True
 
     keys = pygame.key.get_pressed()
 
@@ -55,14 +61,11 @@ while running:
     # Collisions
     left_x = math.ceil(x - 1)
     right_x = math.floor(x + 1)
-    top_y = math.floor(y)
+    left_x_clearance = math.ceil(x - 0.95)
+    right_x_clearance = math.floor(x + 0.95)
+    top_y = math.ceil(y - 0.5)
     bottom_y = math.ceil(y)
 
-    # Floor Collisions
-    if grid[bottom_y][left_x] != 0 or grid[bottom_y][right_x] != 0:
-        yv = 0
-        y = bottom_y - 1
-    
     if grid[top_y][left_x] != 0 and xv < 0:
         x = left_x + 1
         xv = 0
@@ -70,6 +73,13 @@ while running:
     if grid[top_y][right_x] != 0 and xv > 0:
         x = right_x - 1
         xv = 0
+
+    # Floor Collisions
+    if (grid[bottom_y][left_x_clearance] != 0 or grid[bottom_y][right_x_clearance] != 0) and yv > 0:
+        if try_to_jump: yv = -3
+        else: yv = 0
+        y = bottom_y - 1
+    
 
     # Rendering
     screen.fill((255, 255, 255))
