@@ -1,0 +1,83 @@
+import pygame, math, time
+
+print(pygame)
+
+pygame.init()
+WIDTH, HEIGHT = (800, 800)
+screen = pygame.display.set_mode((800, 800))
+running = True
+
+x = 0
+y = 0
+xv = 0
+yv = 0
+
+# Physics Constants
+G = 1
+F = 0.8
+V = 10
+
+# Render Constants
+BLOCKSIZE = 32
+
+grid = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 1, 0, 0, 0, 1, 1, 1],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+]
+
+last_time = time.perf_counter()
+
+while running:
+
+    t = time.perf_counter()
+    dt = t - last_time
+    last_time = t
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+
+    # Velocity
+    yv += G * dt
+    y += yv * dt
+    if keys[pygame.K_a]: xv -= V * dt
+    if keys[pygame.K_d]: xv += V * dt
+    x += xv * dt
+
+    # Collisions
+    left_x = math.floor(x)
+    right_x = math.ceil(x)
+    top_y = math.floor(y)
+    bottom_y = math.ceil(y)
+
+    if grid[bottom_y][left_x] != 0:
+        yv = 0
+        y = bottom_y - 1
+
+    # Rendering
+    screen.fill((255, 255, 255))
+
+    # Draw grid
+    for ty, row in enumerate(grid):
+        for tx, tile in enumerate(row):
+            
+            if tile == 0: colour = (135, 206, 235)
+            elif tile == 1: colour = (80, 80, 80)
+            else: colour = (255, 255, 255)
+
+            effective_x = (tx - x) * BLOCKSIZE + WIDTH / 2 - BLOCKSIZE / 2
+            effective_y = (ty - y) * BLOCKSIZE + HEIGHT / 2 - BLOCKSIZE / 2
+
+            pygame.draw.rect(screen, colour, pygame.Rect(effective_x, effective_y, BLOCKSIZE, BLOCKSIZE))
+
+    # Draw player
+    pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(WIDTH // 2 - BLOCKSIZE // 2, HEIGHT // 2 - BLOCKSIZE // 2, BLOCKSIZE, BLOCKSIZE))
+    pygame.display.update()
+pygame.quit()
