@@ -13,7 +13,7 @@ xv = 0
 yv = 0
 
 # Physics Constants
-G = 1
+G = 9.8
 F = 0.8
 V = 10
 
@@ -25,7 +25,7 @@ grid = [
     [0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
     [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 0, 0, 0, 0, 0, 1, 1, 1],
+    [1, 0, 0, 1, 0, 0, 0, 1, 1, 1],
     [1, 1, 1, 1, 0, 0, 0, 1, 1, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 ]
@@ -52,12 +52,12 @@ while running:
     x += xv * dt
 
     # Collisions
-    left_x = math.floor(x)
-    right_x = math.ceil(x)
+    left_x = math.ceil(x - 1)
+    right_x = math.floor(x + 1)
     top_y = math.floor(y)
     bottom_y = math.ceil(y)
 
-    if grid[bottom_y][left_x] != 0:
+    if grid[bottom_y][left_x] != 0 or grid[bottom_y][right_x] != 0:
         yv = 0
         y = bottom_y - 1
 
