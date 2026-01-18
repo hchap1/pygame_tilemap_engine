@@ -66,6 +66,7 @@ while running:
     right_x_clearance = math.floor(x + 0.95)
     top_y = math.floor(y + 0.9)
     mid_y = math.ceil(y - 0.1)
+    head_y = math.ceil(y - 1)
     bottom_y = math.ceil(y)
 
     if (grid[mid_y][left_x] != 0 or grid[top_y][left_x] != 0) and xv < 0:
@@ -81,6 +82,11 @@ while running:
         if try_to_jump: yv = -JUMP
         else: yv = 0
         y = bottom_y - 1
+
+    # Ceiling Collisions
+    if (grid[head_y][left_x_clearance] != 0 or grid[head_y][right_x_clearance]) and yv < 0:
+        yv = 0
+        y = head_y + 1
 
     # Rendering
     screen.fill((255, 255, 255))
