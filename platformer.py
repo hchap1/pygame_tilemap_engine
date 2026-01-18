@@ -58,9 +58,18 @@ while running:
     top_y = math.floor(y)
     bottom_y = math.ceil(y)
 
+    # Floor Collisions
     if grid[bottom_y][left_x] != 0 or grid[bottom_y][right_x] != 0:
         yv = 0
         y = bottom_y - 1
+    
+    if grid[top_y][left_x] != 0 and xv < 0:
+        x = left_x + 1
+        xv = 0
+
+    if grid[top_y][right_x] != 0 and xv > 0:
+        x = right_x - 1
+        xv = 0
 
     # Rendering
     screen.fill((255, 255, 255))
