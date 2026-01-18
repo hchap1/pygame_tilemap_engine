@@ -1,113 +1,93 @@
-import pygame, math, time
-
-print(pygame)
+import pygame
 
 pygame.init()
-WIDTH, HEIGHT = (800, 800)
-screen = pygame.display.set_mode((800, 800))
-running = True
+BS = 32
+W = H = 800
+screen = pygame.display.set_mode((W, H))
+clock = pygame.time.Clock()
 
-x = 0
-y = 0
-xv = 0
-yv = 0
-
-# Physics Constants
-G = 9.8
-F = 0.9
-V = 20
-JUMP = 7
-
-# Render Constants
-BLOCKSIZE = 32
+# Physics constants
+G = 2000
+SPEED = 400
+JUMP = 800
+FRICTION = 0.8
 
 grid = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 0, 1, 0, 0, 0, 1, 1, 1],
-    [1, 1, 1, 1, 0, 0, 0, 1, 1, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,1],
+    [0,0,0,0,0,0,0,0,1,1],
+    [1,0,0,0,0,0,0,0,0,1],
+    [1,0,0,1,0,0,0,1,1,1],
+    [1,1,1,1,0,0,0,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1]
 ]
 
-last_time = time.perf_counter()
+player = pygame.Rect(64, 0, BS, BS)
+vx = vy = 0.0
+on_ground = False
+running = True
+
+def solid_tiles(rect):
+    x0 = rect.left // BS
+    x1 = rect.right // BS
+    y0 = rect.top // BS
+    y1 = rect.bottom // BS
+
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
+            if grid[y][x]:
+                yield pygame.Rect(x*BS, y*BS, BS, BS)
 
 while running:
+    dt = clock.tick(60) / 1000
 
-    t = time.perf_counter()
-    dt = t - last_time
-    last_time = t
-
-    try_to_jump = False
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    for e in pygame.event.get():
+        if e.type == pygame.QUIT:
             running = False
-
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                try_to_jump = True
 
     keys = pygame.key.get_pressed()
 
-    # Velocity
-    yv += G * dt
-    y += yv * dt
-    if keys[pygame.K_a]: xv -= V * dt
-    if keys[pygame.K_d]: xv += V * dt
-    x += xv * dt
-    xv *= F ** (dt * 60)
+    # Input
+    if keys[pygame.K_a]: vx = -SPEED
+    elif keys[pygame.K_d]: vx = SPEED
+    else: vx *= FRICTION
+    if keys[pygame.K_SPACE] and on_ground: vy = -JUMP
 
-    # Collisions
-    left_x = round(x - 0.5)
-    right_x = round(x + 0.5)
-    left_x_clearance = round(x - 0.45)
-    right_x_clearance = round(x + 0.45)
-    
-    bottom_y = round(y + 0.5)
+    # Gravity
+    vy += G * dt
 
-    top_middle_y = round(y - 0.2)
-    bottom_middle_y = round(y + 0.2)
+    # Horizontal movement
+    player.x += vx * dt
+    for tile in solid_tiles(player):
+        if player.colliderect(tile):
+            if vx > 0:
+                player.right = tile.left
+            elif vx < 0:
+                player.left = tile.right
+            vx = 0
 
-    top_y = round(y - 0.5)
+    # Vertical movement
+    player.y += vy * dt
+    on_ground = False
+    for tile in solid_tiles(player):
+        if player.colliderect(tile):
+            if vy > 0:
+                player.bottom = tile.top
+                on_ground = True
+            elif vy < 0:
+                player.top = tile.bottom
+            vy = 0
 
-    if (grid[top_middle_y][left_x] != 0 or grid[bottom_middle_y][left_x] != 0) and xv < 0:
-        x = left_x + 1
-        xv = 0
+    # Render
+    screen.fill((135,206,235))
+    for y, row in enumerate(grid):
+        for x, t in enumerate(row):
+            if t:
+                dx = x * BS - player.x + W // 2 - BS // 2
+                dy = y * BS - player.y + H // 2 - BS // 2
+                pygame.draw.rect(screen, (80,80,80),(dx, dy, BS, BS))
 
-    if (grid[top_middle_y][right_x] != 0 or grid[bottom_middle_y][right_x] != 0) and xv > 0:
-        x = right_x - 1
-        xv = 0
+    pygame.draw.rect(screen, (255,0,0), pygame.Rect(W // 2 - BS // 2, H // 2 - BS // 2, BS, BS))
+    pygame.display.flip()
 
-    # Floor Collisions
-    if (grid[bottom_y][left_x_clearance] != 0 or grid[bottom_y][right_x_clearance] != 0) and yv > 0:
-        if try_to_jump: yv = -JUMP
-        else: yv = 0
-        y = bottom_y - 1
-    
-    # Ceiling Collisions
-    if (grid[top_y][left_x_clearance] != 0 or grid[top_y][right_x_clearance]) and yv < 0:
-        yv = 0
-        y = top_y + 1
-    
-    # Rendering
-    screen.fill((255, 255, 255))
-
-    # Draw grid
-    for ty, row in enumerate(grid):
-        for tx, tile in enumerate(row):
-            
-            if tile == 0: colour = (135, 206, 235)
-            elif tile == 1: colour = (80, 80, 80)
-            else: colour = (255, 255, 255)
-
-            effective_x = (tx - x) * BLOCKSIZE + WIDTH / 2 - BLOCKSIZE / 2
-            effective_y = (ty - y) * BLOCKSIZE + HEIGHT / 2 - BLOCKSIZE / 2
-
-            pygame.draw.rect(screen, colour, pygame.Rect(effective_x, effective_y, BLOCKSIZE, BLOCKSIZE))
-
-    # Draw player
-    pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(WIDTH // 2 - BLOCKSIZE // 2, HEIGHT // 2 - BLOCKSIZE // 2, BLOCKSIZE, BLOCKSIZE))
-    pygame.display.update()
 pygame.quit()
