@@ -15,7 +15,7 @@ yv = 0
 # Physics Constants
 G = 9.8
 F = 0.9
-V = 10
+V = 20
 JUMP = 7
 
 # Render Constants
@@ -62,11 +62,23 @@ while running:
     # Collisions
     left_x = round(x - 0.5)
     right_x = round(x + 0.5)
-    left_x_clearance = round(x - 0.49)
-    right_x_clearance = round(x + 0.49)
+    left_x_clearance = round(x - 0.45)
+    right_x_clearance = round(x + 0.45)
     
     bottom_y = round(y + 0.5)
-    middle_y = round(y)
+
+    top_middle_y = round(y - 0.2)
+    bottom_middle_y = round(y + 0.2)
+
+    top_y = round(y - 0.5)
+
+    if (grid[top_middle_y][left_x] != 0 or grid[bottom_middle_y][left_x] != 0) and xv < 0:
+        x = left_x + 1
+        xv = 0
+
+    if (grid[top_middle_y][right_x] != 0 or grid[bottom_middle_y][right_x] != 0) and xv > 0:
+        x = right_x - 1
+        xv = 0
 
     # Floor Collisions
     if (grid[bottom_y][left_x_clearance] != 0 or grid[bottom_y][right_x_clearance] != 0) and yv > 0:
@@ -74,19 +86,11 @@ while running:
         else: yv = 0
         y = bottom_y - 1
     
-    if (grid[middle_y][left_x] != 0) and xv < 0:
-        x = left_x + 1
-        xv = 0
-
-    if (grid[middle_y][right_x] != 0) and xv > 0:
-        x = right_x - 1
-        xv = 0
-    """
     # Ceiling Collisions
-    if (grid[head_y][left_x_clearance] != 0 or grid[head_y][right_x_clearance]) and yv < 0:
+    if (grid[top_y][left_x_clearance] != 0 or grid[top_y][right_x_clearance]) and yv < 0:
         yv = 0
-        y = head_y + 1
-    """
+        y = top_y + 1
+    
     # Rendering
     screen.fill((255, 255, 255))
 
