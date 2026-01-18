@@ -14,7 +14,7 @@ yv = 0
 
 # Physics Constants
 G = 9.8
-F = 0.8
+F = 0.7
 V = 10
 
 # Render Constants
@@ -50,6 +50,7 @@ while running:
     if keys[pygame.K_a]: xv -= V * dt
     if keys[pygame.K_d]: xv += V * dt
     x += xv * dt
+    xv *= F ** dt
 
     # Collisions
     left_x = math.ceil(x - 1)
